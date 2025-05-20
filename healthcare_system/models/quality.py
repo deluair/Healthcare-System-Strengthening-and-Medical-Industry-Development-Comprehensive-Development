@@ -3,7 +3,7 @@ Models for quality improvement and patient safety in the healthcare system.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 
 class QualityIndicator(BaseModel):

@@ -3,7 +3,7 @@ Models for the pharmaceutical industry in the healthcare system.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 
 class PharmaceuticalProduct(BaseModel):

@@ -3,13 +3,13 @@ Simulation engine for the healthcare system.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
-from ..models.base import (
+from healthcare_system.models.base import (
     Location, Facility, HealthcareWorker, Patient,
     Treatment, Resource
 )
-from .components import (
+from healthcare_system.simulation.components import (
     HealthcareInfrastructure, WorkforceDevelopment,
     HealthcareFinancing, DigitalHealth
 )
@@ -74,11 +74,13 @@ class SimulationEngine:
         )
         
     def simulate_facility_operations(self) -> None:
-        """Simulate daily facility operations."""
+        """Simulate daily facility operations (aggregate for all facilities)."""
+        utilizations = []
+        qualities = []
         for facility_id in self.infrastructure.facilities:
             # Update facility utilization
             utilization = self.infrastructure.get_facility_utilization(facility_id)
-            
+            utilizations.append(utilization)
             # Update healthcare quality based on workforce
             workers = [w for w in self.workforce.workers.values() 
                       if w.facility_id == facility_id]
@@ -86,15 +88,23 @@ class SimulationEngine:
                 quality = np.mean([w.performance_score for w in workers])
             else:
                 quality = 0.5
-                
-            # Update metrics
-            self.metrics["facility_utilization"].append(
-                (self.current_date, utilization)
-            )
-            self.metrics["healthcare_quality"].append(
-                (self.current_date, quality)
-            )
-            
+            qualities.append(quality)
+        # Store the average for the day
+        if utilizations:
+            avg_utilization = float(np.mean(utilizations))
+        else:
+            avg_utilization = 0.0
+        if qualities:
+            avg_quality = float(np.mean(qualities))
+        else:
+            avg_quality = 0.0
+        self.metrics["facility_utilization"].append(
+            (self.current_date, avg_utilization)
+        )
+        self.metrics["healthcare_quality"].append(
+            (self.current_date, avg_quality)
+        )
+        
     def simulate_patient_care(self) -> None:
         """Simulate patient care activities."""
         for patient_id in self.financing.insurance_coverage:

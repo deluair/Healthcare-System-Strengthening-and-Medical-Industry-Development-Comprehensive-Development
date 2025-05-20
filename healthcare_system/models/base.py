@@ -2,79 +2,76 @@
 Base models for the healthcare system simulation.
 """
 
-from datetime import datetime
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Any
 
-class Location(BaseModel):
+@dataclass
+class Location:
     """Represents a geographical location in the healthcare system."""
     id: str
     name: str
-    type: str  # district, upazila, union, ward
+    type: str  # city, district, etc.
     population: int
     coordinates: Dict[str, float]  # latitude, longitude
-    parent_id: Optional[str] = None
 
-class Facility(BaseModel):
+@dataclass
+class Facility:
     """Represents a healthcare facility."""
     id: str
     name: str
-    type: str  # hospital, clinic, diagnostic center, etc.
+    type: str  # hospital, clinic, etc.
     location_id: str
     capacity: int
     staff_count: int
     equipment: Dict[str, int]  # equipment type -> count
     services: List[str]
-    quality_score: float = Field(ge=0, le=1)
-    operational_status: str = "active"
-    last_updated: datetime = Field(default_factory=datetime.now)
+    quality_score: float  # 0.0 to 1.0
 
-class HealthcareWorker(BaseModel):
+@dataclass
+class HealthcareWorker:
     """Represents a healthcare worker."""
     id: str
     name: str
-    type: str  # doctor, nurse, technician, etc.
-    specialization: Optional[str]
+    type: str  # doctor, nurse, etc.
+    specialization: str
     facility_id: str
     experience_years: int
     qualifications: List[str]
     skills: List[str]
-    performance_score: float = Field(ge=0, le=1)
-    status: str = "active"
+    performance_score: float  # 0.0 to 1.0
 
-class Patient(BaseModel):
-    """Represents a patient in the system."""
+@dataclass
+class Patient:
+    """Represents a patient in the healthcare system."""
     id: str
     name: str
     age: int
     gender: str
     location_id: str
-    insurance_status: str
-    medical_history: List[Dict[str, Any]]
+    insurance_status: str  # insured, uninsured
+    medical_history: List[str]
     current_conditions: List[str]
-    socioeconomic_status: str
-    last_visit: Optional[datetime]
+    socioeconomic_status: str  # low, middle, high
 
-class Treatment(BaseModel):
-    """Represents a medical treatment or procedure."""
+@dataclass
+class Treatment:
+    """Represents a medical treatment."""
     id: str
     name: str
     type: str
     cost: float
-    duration_minutes: int
+    duration: int  # in days
+    success_rate: float  # 0.0 to 1.0
     required_equipment: List[str]
-    required_staff: List[str]
-    success_rate: float = Field(ge=0, le=1)
-    complications_rate: float = Field(ge=0, le=1)
+    required_skills: List[str]
 
-class Resource(BaseModel):
-    """Represents a healthcare resource (equipment, supplies, etc.)."""
+@dataclass
+class Resource:
+    """Represents a healthcare resource."""
     id: str
     name: str
-    type: str
+    type: str  # medicine, equipment, etc.
     quantity: int
-    unit_cost: float
+    cost: float
     facility_id: str
-    status: str
-    maintenance_schedule: Optional[Dict[str, Any]]
-    last_maintenance: Optional[datetime] 
+    expiry_date: Optional[str] = None  # for medicines 

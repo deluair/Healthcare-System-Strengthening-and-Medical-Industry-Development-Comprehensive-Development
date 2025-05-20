@@ -1,10 +1,10 @@
 """
-Core components for the healthcare system simulation.
+Simulation components for the healthcare system.
 """
 
-from datetime import datetime
 from typing import Dict, List, Optional
-from ..models.base import (
+import numpy as np
+from healthcare_system.models.base import (
     Location, Facility, HealthcareWorker, Patient,
     Treatment, Resource
 )
@@ -22,88 +22,94 @@ from ..models.pharmaceutical import (
 )
 
 class HealthcareInfrastructure:
-    """Manages healthcare infrastructure development and maintenance."""
+    """Manages healthcare facilities and infrastructure."""
     
     def __init__(self):
         self.facilities: Dict[str, Facility] = {}
         self.resources: Dict[str, Resource] = {}
-        self.maintenance_schedule: Dict[str, datetime] = {}
         
     def add_facility(self, facility: Facility) -> None:
-        """Add a new healthcare facility."""
+        """Add a facility to the infrastructure."""
         self.facilities[facility.id] = facility
-        self._schedule_maintenance(facility.id)
-        
-    def _schedule_maintenance(self, facility_id: str) -> None:
-        """Schedule regular maintenance for a facility."""
-        self.maintenance_schedule[facility_id] = datetime.now()
         
     def get_facility_utilization(self, facility_id: str) -> float:
         """Calculate facility utilization rate."""
+        if facility_id not in self.facilities:
+            return 0.0
+            
         facility = self.facilities[facility_id]
-        # Simplified calculation - would be more complex in reality
-        return sum(facility.equipment.values()) / len(facility.equipment) if facility.equipment else 0.0
+        # Simulate utilization based on capacity and staff
+        base_utilization = min(facility.staff_count / (facility.capacity * 0.1), 1.0)
+        # Add some random variation
+        return min(base_utilization + np.random.normal(0, 0.1), 1.0)
+        
+    def update_facility_quality(self, facility_id: str, quality_score: float) -> None:
+        """Update facility quality score."""
+        if facility_id in self.facilities:
+            self.facilities[facility_id].quality_score = max(0.0, min(1.0, quality_score))
 
 class WorkforceDevelopment:
-    """Manages healthcare workforce development and training."""
+    """Manages healthcare workforce development."""
     
     def __init__(self):
         self.workers: Dict[str, HealthcareWorker] = {}
         self.training_programs: Dict[str, List[str]] = {}
         
     def add_worker(self, worker: HealthcareWorker) -> None:
-        """Add a new healthcare worker."""
+        """Add a healthcare worker."""
         self.workers[worker.id] = worker
+        self.training_programs[worker.id] = []
         
     def assign_training(self, worker_id: str, program: str) -> None:
         """Assign a training program to a worker."""
-        if worker_id not in self.training_programs:
-            self.training_programs[worker_id] = []
-        self.training_programs[worker_id].append(program)
-        
-    def get_worker_qualifications(self, worker_id: str) -> List[str]:
-        """Get worker's qualifications and training."""
-        worker = self.workers[worker_id]
-        return worker.qualifications + self.training_programs.get(worker_id, [])
+        if worker_id in self.workers:
+            if program not in self.training_programs[worker_id]:
+                self.training_programs[worker_id].append(program)
+                
+    def update_performance(self, worker_id: str, performance_score: float) -> None:
+        """Update worker performance score."""
+        if worker_id in self.workers:
+            self.workers[worker_id].performance_score = max(0.0, min(1.0, performance_score))
 
 class HealthcareFinancing:
-    """Manages healthcare financing and Universal Health Coverage (UHC)."""
+    """Manages healthcare financing and insurance."""
     
     def __init__(self):
-        self.insurance_coverage: Dict[str, float] = {}  # patient_id -> coverage_percentage
-        self.facility_funding: Dict[str, float] = {}  # facility_id -> funding_amount
+        self.insurance_coverage: Dict[str, float] = {}  # patient_id -> coverage rate
+        self.facility_funding: Dict[str, float] = {}  # facility_id -> funding amount
         
     def set_insurance_coverage(self, patient_id: str, coverage: float) -> None:
         """Set insurance coverage for a patient."""
-        self.insurance_coverage[patient_id] = min(max(coverage, 0.0), 1.0)
+        self.insurance_coverage[patient_id] = max(0.0, min(1.0, coverage))
         
     def allocate_funding(self, facility_id: str, amount: float) -> None:
         """Allocate funding to a facility."""
         self.facility_funding[facility_id] = amount
         
-    def calculate_patient_cost(self, patient_id: str, treatment_cost: float) -> float:
-        """Calculate actual cost to patient after insurance."""
-        coverage = self.insurance_coverage.get(patient_id, 0.0)
-        return treatment_cost * (1 - coverage)
+    def calculate_coverage_rate(self) -> float:
+        """Calculate overall insurance coverage rate."""
+        if not self.insurance_coverage:
+            return 0.0
+        return sum(self.insurance_coverage.values()) / len(self.insurance_coverage)
 
 class DigitalHealth:
-    """Manages digital health systems and telemedicine."""
+    """Manages digital health systems and records."""
     
     def __init__(self):
-        self.telemedicine_sessions: Dict[str, List[datetime]] = {}
-        self.electronic_records: Dict[str, Dict] = {}
+        self.electronic_records: Dict[str, Dict] = {}  # patient_id -> health record
+        self.telemedicine_sessions: Dict[str, List[str]] = {}  # patient_id -> session records
+        
+    def update_electronic_record(self, patient_id: str, record_data: Dict) -> None:
+        """Update electronic health record for a patient."""
+        if patient_id not in self.electronic_records:
+            self.electronic_records[patient_id] = {}
+        self.electronic_records[patient_id].update(record_data)
         
     def record_telemedicine_session(self, patient_id: str) -> None:
         """Record a telemedicine session."""
         if patient_id not in self.telemedicine_sessions:
             self.telemedicine_sessions[patient_id] = []
-        self.telemedicine_sessions[patient_id].append(datetime.now())
-        
-    def update_electronic_record(self, patient_id: str, record: Dict) -> None:
-        """Update patient's electronic health record."""
-        if patient_id not in self.electronic_records:
-            self.electronic_records[patient_id] = {}
-        self.electronic_records[patient_id].update(record)
+        self.telemedicine_sessions[patient_id].append("session_recorded")
         
     def get_patient_history(self, patient_id: str) -> Dict:
         """Get patient's electronic health record."""

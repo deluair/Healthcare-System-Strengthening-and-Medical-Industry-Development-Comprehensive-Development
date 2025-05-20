@@ -3,7 +3,7 @@ Models for public health and preventive services in the healthcare system.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 
 class DiseaseSurveillance(BaseModel):
